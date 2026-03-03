@@ -36,9 +36,10 @@
 
 Facebook Ad Builder is a full-stack application that streamlines the entire Facebook advertising workflow. Use AI to research competitors, generate compelling ad copy and images, and manage campaigns—all from one platform.
 
-### Handoff Documentation
+### Documentation
 
-- Full handoff and operations guide: [`docs/HANDOFF.md`](./docs/HANDOFF.md)
+- Production deployment reference: [`docs/PRODUCTION.md`](./docs/PRODUCTION.md)
+- Developer handoff guide: [`docs/HANDOFF.md`](./docs/HANDOFF.md)
 
 ### Key Capabilities
 
@@ -96,8 +97,8 @@ Manage Facebook campaigns directly:
 Run the setup wizard which will guide you through the entire configuration:
 
 ```bash
-git clone https://github.com/yourusername/facebook_ad_builder.git
-cd facebook_ad_builder
+git clone https://github.com/rileyvibecodes/facebook-ad-builder-kie-handoff.git
+cd facebook-ad-builder-kie-handoff
 ./setup.sh
 ```
 
@@ -115,8 +116,8 @@ The wizard will:
 #### 1. Clone and Install
 
 ```bash
-git clone https://github.com/yourusername/facebook_ad_builder.git
-cd facebook_ad_builder
+git clone https://github.com/rileyvibecodes/facebook-ad-builder-kie-handoff.git
+cd facebook-ad-builder-kie-handoff
 
 # Backend
 cd backend
@@ -400,34 +401,42 @@ pytest
 
 ## Deployment
 
-### Railway (Recommended)
+### Production (Live)
 
-Deploy to [Railway](https://railway.app) in minutes:
+The app is deployed with a split architecture:
 
-1. Fork this repo to your GitHub account
-2. [Create a new Railway project](https://railway.app/new)
-3. Click "Deploy from GitHub repo" and select your fork
-4. Add a PostgreSQL database: **+ New** → **Database** → **PostgreSQL**
-5. Set environment variables in both services (see `.env.example`)
-6. Set `ALLOWED_ORIGINS` to your frontend URL
-7. Deploy!
+| Service | Platform | URL |
+|---------|----------|-----|
+| Frontend | Vercel | https://frontend-skillstack.vercel.app |
+| Backend API | Railway | https://backend-production-78c0.up.railway.app |
+| API Docs | Railway | https://backend-production-78c0.up.railway.app/api/v1/docs |
+| Database | Railway | PostgreSQL 16 (internal networking) |
 
-> **Tip:** Railway auto-detects the `railway.toml` config and creates both backend and frontend services.
+Both services auto-deploy on push to `main`.
 
-📖 **[Full Deployment Guide →](./RAILWAY_DEPLOYMENT.md)**
+📖 **[Full Production Reference →](./docs/PRODUCTION.md)** (env vars, runbooks, troubleshooting, custom domains)
 
-### Docker
+### Deploy Your Own
+
+**Frontend (Vercel):**
+1. Import the repo on [Vercel](https://vercel.app) with root directory set to `frontend/`
+2. Set `VITE_API_URL` to your backend URL (e.g., `https://your-backend.up.railway.app/api/v1`)
+3. Deploy
+
+**Backend + Database (Railway):**
+1. Create a project on [Railway](https://railway.app) from the GitHub repo
+2. Add PostgreSQL: **+ New** → **Database** → **PostgreSQL**
+3. Set environment variables (see `.env.example` for full list)
+4. Initialize DB: temporarily set start command to `sh -c 'python init_db.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}'`, deploy once, then revert to `sh -c 'alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}'`
+5. Add your Vercel frontend domain to `ALLOWED_ORIGINS`
+
+### Docker (Local)
 
 ```bash
 # Backend
 cd backend
 docker build -t fb-ad-backend .
 docker run -p 8000:8000 --env-file ../.env.local fb-ad-backend
-
-# Frontend
-cd frontend
-docker build -t fb-ad-frontend .
-docker run -p 5173:5173 fb-ad-frontend
 ```
 
 ---

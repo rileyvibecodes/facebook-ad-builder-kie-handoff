@@ -21,7 +21,7 @@ Facebook Ad Automation App - A full-stack application for automating the lifecyc
 - Database: PostgreSQL on Railway
 - Storage: Cloudflare R2 (S3-compatible)
 - Testing: agent-browser (e2e), Vitest (unit)
-- Hosting: Railway (backend + frontend + database)
+- Hosting: Vercel (frontend) + Railway (backend + database)
 
 ## Development Commands
 
@@ -309,16 +309,28 @@ SECRET_KEY=...  # Generate with: python -c "import secrets; print(secrets.token_
 
 ## Deployment
 
-**Railway Setup:**
-1. Backend auto-deploys from `main` branch via Dockerfile
-2. Frontend auto-deploys from `main` branch via Nixpacks
-3. Database is Railway PostgreSQL service
-4. Custom domain → CNAME to Railway
+**Production URLs:**
+- Frontend: https://frontend-skillstack.vercel.app
+- Backend API: https://backend-production-78c0.up.railway.app
+- API Docs: https://backend-production-78c0.up.railway.app/api/v1/docs
+
+**Architecture:**
+- Frontend (Vercel): React SPA, auto-deploys from `main` branch (watches `frontend/` root directory)
+- Backend (Railway): FastAPI in Docker container, auto-deploys from `main` branch via `backend/Dockerfile`
+- Database (Railway): PostgreSQL 16 with persistent volume, internal networking
+
+**Deploy pipeline:**
+- Push to `main` triggers both Vercel and Railway auto-deploys
+- Backend runs `alembic upgrade head` before starting Uvicorn on every deploy
+- `VITE_API_URL` is baked into the frontend JS bundle at build time (not runtime)
 
 **Post-Deploy Verification:**
 ```bash
-railway logs --tail 30  # Look for "Uvicorn running on http://0.0.0.0:8080"
+curl https://backend-production-78c0.up.railway.app/health
+# Expected: {"status": "healthy"}
 ```
+
+See [`docs/PRODUCTION.md`](./docs/PRODUCTION.md) for full operational reference (env vars, runbooks, troubleshooting).
 
 **MANDATORY - Feature Testing After Deployment:**
 For ANY new feature deployment, run ALL applicable tests:
@@ -372,4 +384,5 @@ agent-browser close               # Close browser
 - Frontend API URL set via `VITE_API_URL` env var (build-time, not runtime)
 - When adding new origins: update CORS in `main.py` AND CSP in `index.html`
 - Ad account IDs auto-prefixed with 'act_' if missing (facebook_service.py)
-- Local dev uses same Railway DB + R2 as production (shared data)
+- Local dev can use same Railway DB + R2 as production (shared data) or local Postgres
+- See `docs/PRODUCTION.md` for full production deployment reference

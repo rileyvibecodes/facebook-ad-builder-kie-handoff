@@ -1,12 +1,13 @@
 # Railway Deployment Guide
 
-This guide walks you through deploying the Facebook Ad Builder to Railway.
+> **Note:** The production deployment uses a split architecture: **Frontend on Vercel** and **Backend + Database on Railway**. For the full production reference (live URLs, env vars, runbooks, troubleshooting), see [`docs/PRODUCTION.md`](./docs/PRODUCTION.md).
+
+This guide covers deploying the **backend and database** to Railway. For frontend deployment on Vercel, see the README.
 
 ## Overview
 
-Railway will host:
+Railway hosts:
 - **Backend Service**: Python FastAPI application (Docker container)
-- **Frontend Service**: React/Vite static site
 - **PostgreSQL Database**: Managed database service
 
 ## Prerequisites
